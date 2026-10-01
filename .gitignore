@@ -1,0 +1,8 @@
+venv/
+.venv/
+.venv-latexminted/
+notebook.aux
+notebook.log
+notebook.out
+notebook.toc
+_minted
