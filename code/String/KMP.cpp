@@ -7,7 +7,7 @@ vector<int> prefix_function(const string&p){
   return f;
 }
 vector<int> kmpSearch(const string&text,const string&pat){
-    auto f=kmpFail(pat); int m=pat.size(); vector<int>res;
+    auto f=prefix_function(pat); int m=pat.size(); vector<int>res;
     for(int i=0,j=0;i<(int)text.size();i++){
         while(j>0&&text[i]!=pat[j]) j=f[j-1];
         if(text[i]==pat[j]) j++;
