@@ -9,3 +9,6 @@ template <typename T, typename... V> void _print(T t, V... v) {__print(t); if (s
 #else
 #define debug(x...)
 #endif
+
+// freopen("input.txt", "r", stdin);
+// freopen("output.txt", "w", stdout);
