@@ -1,95 +1,73 @@
-const int N = 1e5 + 5;
-i64 arr[N], seg[N << 2], lz[N << 2];
+struct SegTree {
+  int n;
+  vector<ll> tree, lazy;
+  const ll NEUTRAL = 0; 
+  
+  SegTree(int n) : n(n), tree(4 * n, NEUTRAL), lazy(4 * n, 0) {}
+  
+  ll combine(ll left, ll right) {
+    return left + right; 
+  }
 
-i64 combine(i64 l, i64 r) { return l + r; }
-void push(int node, int l, int r) {
-    if (lz[node] == 0) return;
-    int mid = (l + r) >> 1;
-    lz[node << 1] += lz[node];
-    seg[node << 1] += lz[node] * (mid - l + 1);
-    lz[node << 1 | 1] += lz[node];
-    seg[node << 1 | 1] += lz[node] * (r - mid);
-    lz[node] = 0;
-}
-void build(int node, int l, int r) {
-    if (l == r) {
-        seg[node] = arr[l];
-        lz[node] = 0;
-        return;
+  void push(int v, int tl, int tr) {
+    if (lazy[v] == 0) return;
+    int m = (tl + tr) / 2;
+    tree[2 * v] += lazy[v] * (m - tl + 1);
+    lazy[2 * v] += lazy[v];
+    tree[2 * v + 1] += lazy[v] * (tr - m);
+    lazy[2 * v + 1] += lazy[v];
+    lazy[v] = 0;
+  }
+  
+  void build(const vector<int>& a, int v = 1, int tl = 0, int tr = -1) {
+    if (tr < 0) tr = n - 1;
+    if (tl == tr) {
+      tree[v] = a[tl];
+      return;
     }
-    int mid = (l + r) >> 1;
-    build(node << 1, l, mid);
-    build(node << 1 | 1, mid + 1, r);
-    seg[node] = combine(seg[node << 1], seg[node << 1 | 1]);
-}
-void update(int node, int l, int r, int ql, int qr, int val) {
-    if (qr < l || r < ql) return;
-    if (ql <= l && r <= qr) {
-        seg[node] += 1LL * val * (r - l + 1);  // check it!
-        lz[node] += val;
-        return;
+    int m = (tl + tr) / 2;
+    build(a, 2 * v, tl, m);
+    build(a, 2 * v + 1, m + 1, tr);
+    tree[v] = combine(tree[2 * v], tree[2 * v + 1]);
+  }
+  
+  void update(int l, int r, int val, int v = 1, int tl = 0, int tr = -1) {
+    if (tr < 0) tr = n - 1;
+    if (l > tr || r < tl) return;
+    if (l <= tl && tr <= r) {
+      tree[v] += 1LL * val * (tr - tl + 1); 
+      lazy[v] += val;
+      return;
     }
-    push(node, l, r);
-    int mid = (l + r) >> 1;
-    update(node << 1, l, mid, ql, qr, val);
-    update(node << 1 | 1, mid + 1, r, ql, qr, val);
-    seg[node] = combine(seg[node << 1], seg[node << 1 | 1]);
-}
-i64 query(int node, int l, int r, int ql, int qr) {
-    if (qr < l || r < ql) return 0;  // check it!
-    if (ql <= l && r <= qr) return seg[node];
-    push(node, l, r);
-    int mid = (l + r) >> 1;
-    return combine(query(node << 1, l, mid, ql, qr),
-                   query(node << 1 | 1, mid + 1, r, ql, qr));
-}
-
-// Range Inversion Count and Toggle Update
-void push(int node, int l, int r) {
-    if (lz[node] == 0) return;
-	// need to update the children while passing the lazy value
-    int mid = (l + r) >> 1;
-    lz[node << 1] ^= lz[node];
-    {
-        swap(seg[node << 1].one, seg[node << 1].zero);
-        int t = seg[node << 1].total;
-        int o = seg[node << 1].one;
-        int z = seg[node << 1].zero;
-        seg[node << 1].ans =
-            (t * (t - 1) / 2 - o * (o - 1) / 2 - z * (z - 1) / 2) -
-            seg[node << 1].ans;
+    push(v, tl, tr);
+    int m = (tl + tr) / 2;
+    update(l, r, val, 2 * v, tl, m);
+    update(l, r, val, 2 * v + 1, m + 1, tr);
+    tree[v] = combine(tree[2 * v], tree[2 * v + 1]);
+  }
+  
+  ll query(int l, int r, int v = 1, int tl = 0, int tr = -1) {
+    if (tr < 0) tr = n - 1;
+    if (l > tr || r < tl) return NEUTRAL; 
+    if (l <= tl && tr <= r) return tree[v];
+    push(v, tl, tr);
+    int m = (tl + tr) / 2;
+    return combine(query(l, r, 2 * v, tl, m), query(l, r, 2 * v + 1, m + 1, tr));
+  }
+  
+  void pointSet(int pos, int val, int v = 1, int tl = 0, int tr = -1) {
+    if (tr < 0) tr = n - 1;
+    if (tl == tr) {
+      tree[v] = val;
+      lazy[v] = 0;
+      return;
     }
-    lz[node << 1 | 1] ^= lz[node];
-    {
-        swap(seg[node << 1 | 1].one, seg[node << 1 | 1].zero);
-        int t = seg[node << 1 | 1].total;
-        int o = seg[node << 1 | 1].one;
-        int z = seg[node << 1 | 1].zero;
-        seg[node << 1 | 1].ans =
-            (t * (t - 1) / 2 - o * (o - 1) / 2 - z * (z - 1) / 2) -
-            seg[node << 1 | 1].ans;
-    }
-    lz[node] = 0;
-}
-void update(int node, int l, int r, int ql, int qr, int val) {
-    if (qr < l || r < ql) return;
-    if (ql <= l && r <= qr) {
-        lz[node] ^= val;
-        { // need to update the segment now
-            swap(seg[node].one, seg[node].zero);
-            int t = seg[node].total;
-            int o = seg[node].one;
-            int z = seg[node].zero;
-            seg[node].ans =
-                (t * (t - 1) / 2 - o * (o - 1) / 2 - z * (z - 1) / 2) -
-                seg[node].ans;
-        }
-        return;
-    }
-    push(node, l, r);
-    int mid = (l + r) >> 1;
-    update(node << 1, l, mid, ql, qr, val);
-    update(node << 1 | 1, mid + 1, r, ql, qr, val);
-
-    seg[node] = combine(seg[node << 1], seg[node << 1 | 1]);
-}
+    push(v, tl, tr);
+    int m = (tl + tr) / 2;
+    if (pos <= m)
+      pointSet(pos, val, 2 * v, tl, m);
+    else
+      pointSet(pos, val, 2 * v + 1, m + 1, tr);
+    tree[v] = combine(tree[2 * v], tree[2 * v + 1]);
+  }
+};
