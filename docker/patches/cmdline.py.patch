@@ -1,0 +1,17 @@
+--- a/cmdline.py
++++ b/cmdline.py
+@@ -24,8 +24,6 @@
+-class ArgParser(argparse.ArgumentParser):
+-    def __init__(self, *, prog: str):
+-        super().__init__(
+-            prog=prog,
+-            allow_abbrev=False,
+-            formatter_class=argparse.RawTextHelpFormatter
+-        )
+-        self._prog = prog
++class ArgParser(argparse.ArgumentParser):
++    def __init__(self, *, prog: str, **kwargs):
++        kwargs.setdefault('allow_abbrev', False)
++        kwargs.setdefault('formatter_class', argparse.RawTextHelpFormatter)
++        super().__init__(prog=prog, **kwargs)
++        self._prog = prog

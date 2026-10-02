@@ -101,9 +101,15 @@ if __name__ == "__main__":
     print("Running LaTeX compilation...")
     
     env = get_env()
-    # nonstopmode keeps a LaTeX error from blocking the build on stdin
-    pdflatex_options = ["pdflatex", "-shell-escape", "-interaction=nonstopmode",
-                        "notebook.tex"]
+    # nonstopmode keeps a LaTeX error from blocking the build on stdin.
+    # OUTPUT_DIRECTORY, when set, sends .aux/.log/.out/.toc and the final
+    # .pdf into a separate directory (used by the Docker compose setup
+    # to keep intermediate artifacts out of the host filesystem).
+    output_directory = os.environ.get("OUTPUT_DIRECTORY")
+    pdflatex_options = ["pdflatex", "-shell-escape", "-interaction=nonstopmode"]
+    if output_directory:
+        pdflatex_options += [f"-output-directory={output_directory}"]
+    pdflatex_options.append("notebook.tex")
     
     # First run - generates content
     subprocess.call(pdflatex_options, env=env)

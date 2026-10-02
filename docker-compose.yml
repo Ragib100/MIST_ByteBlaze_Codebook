@@ -1,0 +1,56 @@
+# Compose file for the codebook PDF build.
+#
+# Usage:
+#   docker compose build
+#   docker compose run --rm build
+#
+# After the run, only notebook.pdf is written to the project root. All the
+# intermediate LaTeX artifacts (contents.tex, notebook.aux/log/out/toc, and
+# the _minted/ highlight cache) live in a Docker-managed named volume, so
+# they never touch your host filesystem.
+#
+# Optional cleanup:
+#   docker compose down --volumes   # delete the named volume and forget PDF
+
+services:
+  build:
+    build: .
+    image: mist-codebook
+    working_dir: /work
+    volumes:
+      # Editable inputs from the host.
+      - ./code:/work/code:rw
+      - ./math:/work/math:rw
+      - ./images:/work/images:rw
+
+      # Single bind mount for the deliverable PDF only. On a fresh checkout
+      # run `touch notebook.pdf` once so Docker bind-mounts it as a file
+      # rather than creating it as a directory.
+      - ./notebook.pdf:/work/notebook.pdf
+
+      # Named volume (declared below) absorbs all the intermediate artifacts
+      # so they don't pollute the host. Mounted at /var/build so it does
+      # not shadow /work (which holds the bind-mounted inputs above).
+      - codebook-build:/var/build
+
+    # generate_pdf.py reads the OUTPUT_DIRECTORY env var and passes
+    # -output-directory=$OUTPUT_DIRECTORY to pdflatex. That sends
+    # .aux/.log/.out/.toc and the final .pdf into /var/build (the named
+    # volume), while pdflatex still reads notebook.tex from /work, so
+    # relative paths like \input{math/bhai} and \inputminted{...}{code/...}
+    # resolve naturally.
+    #
+    # We then copy just the PDF back to /work (the host bind mount) so it
+    # appears in the project root.
+    command:
+      - bash
+      - -c
+      - |
+        set -e
+        mkdir -p /var/build
+        export OUTPUT_DIRECTORY=/var/build
+        python3 /work/generate_pdf.py
+        cp /var/build/notebook.pdf /work/notebook.pdf
+
+volumes:
+  codebook-build:

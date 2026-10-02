@@ -1,0 +1,45 @@
+# Files excluded from the Docker build context. Anything not needed at
+# image build time should be listed here to keep the build context small
+# and the cache effective.
+#
+# IMPORTANT: do not exclude directory names that contain spaces (e.g.
+# "code/Data Structure/") — those are bind-mounted at run time, not COPY'd,
+# but keeping them out of .dockerignore avoids surprises if the project is
+# later reorganized to COPY them in.
+
+# Version control
+.git
+.gitignore
+
+# Host-side virtualenvs (the image creates its own at /opt/latexminted-venv)
+.venv
+.venv-latexminted
+venv
+
+# LaTeX build artifacts produced on the host. The named volume
+# `codebook-build` absorbs these inside the container, so they should
+# not normally appear on the host, but ignore them here in case a
+# contributor runs generate_pdf.py directly on the host.
+notebook.aux
+notebook.log
+notebook.out
+notebook.toc
+notebook.pdf
+contents.tex
+_minted
+
+# Large / unrequired image assets (kept on host; bind-mounted if ever needed)
+images/CHEAT
+images/cheat.tar.gz
+
+# IDE / editor
+.vscode
+.idea
+*.swp
+.DS_Store
+
+# The patch is needed at build time, so we explicitly COPY it in the
+# Dockerfile. Don't let .dockerignore strip the docker/ directory.
+# (Listed below only as documentation; .dockerignore patterns don't apply
+# to COPY destinations.)
+# !docker/
