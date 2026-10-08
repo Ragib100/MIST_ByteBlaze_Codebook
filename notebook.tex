@@ -15,6 +15,10 @@
 \usepackage{tikz}
 \usepackage{xcolor}
 
+% Team name, institution and members come from .env (see generate_pdf.py).
+% config.tex is auto-generated -- do not edit it manually.
+\input{config.tex}
+
 \usemintedstyle{default}
 
 \setlength{\columnsep}{0.4cm}
@@ -47,19 +51,19 @@
 breakafter={,+-*;>=}, breakbefore={</}, tabsize=2, obeytabs, mathescape, frame=topline, framesep=3pt, fontsize=\fontsize{9}{9}}
 
 \pagestyle{fancy}
-\fancyhead[L]{MIST\_Titan | Military Institute of Science and Technology}
+\fancyhead[L]{\NotebookTeam\ | \NotebookInstitution}
 \fancyhead[R]{\thepage}
 \fancyfoot[C]{}
 
 \fancypagestyle{plain}
 {
-\fancyhead[L]{MIST\_Titan | Military Institute of Science and Technology}
+\fancyhead[L]{\NotebookTeam\ | \NotebookInstitution}
 \fancyhead[R]{\thepage}
 \fancyfoot[C]{}
 }
 
-\title{\vspace{-2.5ex}MIST\_Titan Team Notebook}
-\author{Md. Ragib Hossain Rifat, Farhan Sadik Tahsin,\\Abdullah Al Kafi}
+\title{\vspace{-2.5ex}\NotebookTeam\ Team Notebook}
+\author{\parbox[t]{\linewidth}{\centering\NotebookAuthors}}
 \date{}
 
 \graphicspath{ {./images} }
@@ -115,7 +119,7 @@ breakafter={,+-*;>=}, breakbefore={</}, tabsize=2, obeytabs, mathescape, frame=t
 %     \fbox{\includegraphics[height=\textwidth/2, angle=0]{6.2}}
 % \end{figure}
 % \begin{figure}[]
-%     \fbox{\includegraphics[height=7cm, angle=0]{14}}	
+%     \fbox{\includegraphics[height=7cm, angle=0]{14}}  
 %     \fbox{\includegraphics[height=\textwidth/2, angle=0]{7.1}}\\
 %     \fbox{\includegraphics[height=6.75cm, angle=0]{12}}
 %     \fbox{\includegraphics[height=\textwidth/2, angle=0]{7.2}}

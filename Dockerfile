@@ -52,4 +52,9 @@ COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+# Default command, used only if the image is run without a command.
+# docker-compose.yml overrides this with its own `command:` (which sets
+# OUTPUT_DIRECTORY and copies the PDF back to the host), so
+# `docker compose run --rm build` never uses this line.
+# docker-entrypoint.sh runs first in both cases and passes the command to exec.
 CMD ["python3", "generate_pdf.py"]

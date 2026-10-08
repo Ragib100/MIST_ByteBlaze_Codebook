@@ -43,3 +43,10 @@ images/cheat.tar.gz
 # (Listed below only as documentation; .dockerignore patterns don't apply
 # to COPY destinations.)
 # !docker/
+
+#Heavy folders
+math/
+images/
+
+#Environment variables
+.env

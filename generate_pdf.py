@@ -91,7 +91,43 @@ def get_env():
         env["PATH"] = venv_bin + os.pathsep + env.get("PATH", "")
     return env
 
+REQUIRED_KEYS = ["TEAM_NAME", "INSTITUTION_NAME", "TEAM_MEMBERS"]
+
+def load_env(path=".env"):
+    env = {}
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, value = line.split("=", 1)
+                key, value = key.strip(), value.strip()
+                if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+                    value = value[1:-1]
+                env[key] = value
+    # real environment variables (e.g. from docker compose) override the file
+    for key in REQUIRED_KEYS:
+        if os.environ.get(key):
+            env[key] = os.environ[key]
+    missing = [k for k in REQUIRED_KEYS if not env.get(k)]
+    if missing:
+        raise SystemExit("Missing values: %s. Copy .env.example to .env and fill it in."
+                         % ", ".join(missing))
+    return env
+
+def write_config(env):
+    members = [m.strip() for m in env["TEAM_MEMBERS"].split(",") if m.strip()]
+    # \mbox keeps each full name on one line, so wrapping only happens
+    # between names, never in the middle of one
+    authors = ", ".join("\\mbox{%s}" % texify(m) for m in members)
+    with open("config.tex", "w", encoding="utf-8") as f:
+        f.write("\\newcommand{\\NotebookTeam}{%s}\n" % texify(env["TEAM_NAME"]))
+        f.write("\\newcommand{\\NotebookInstitution}{%s}\n" % texify(env["INSTITUTION_NAME"]))
+        f.write("\\newcommand{\\NotebookAuthors}{%s}\n" % authors)
+
 if __name__ == "__main__":
+    write_config(load_env())
     sections = get_sections()
     tex = get_tex(sections)
     with open('contents.tex', 'w') as f:

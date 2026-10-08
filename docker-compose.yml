@@ -17,6 +17,8 @@ services:
     build: .
     image: mist-codebook
     working_dir: /work
+    env_file:
+      - .env
     volumes:
       # Editable inputs from the host.
       - ./code:/work/code:rw
