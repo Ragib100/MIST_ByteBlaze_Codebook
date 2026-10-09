@@ -18,8 +18,8 @@ void printCalendar(int year) {
   printf("       Calendar - %d\n\n", year);
   int days;
   int current = dayNumber(1, 1, year);
-  // i—-> Iterate through all the months
-  // j—-> Iterate through all the days of
+  // i---> Iterate through all the months
+  // j---> Iterate through all the days of
   the month - i for (int i = 0; i < 12; i++) {
     days = numberOfDays(i, year);
     cout << "         |" << getMonthName(i).c_str() << "|" << endl;

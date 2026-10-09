@@ -4,13 +4,9 @@
 #   docker compose build
 #   docker compose run --rm build
 #
-# After the run, only notebook.pdf is written to the project root. All the
-# intermediate LaTeX artifacts (contents.tex, notebook.aux/log/out/toc, and
-# the _minted/ highlight cache) live in a Docker-managed named volume, so
-# they never touch your host filesystem.
-#
-# Optional cleanup:
-#   docker compose down --volumes   # delete the named volume and forget PDF
+# After the run, notebook.pdf is written to the project root. The project's
+# logs/ directory contains only the .aux, .log, .out, and .toc files from the
+# latest PDF generation; other build artifacts stay in a Docker-managed volume.
 
 services:
   build:
@@ -30,15 +26,16 @@ services:
       # rather than creating it as a directory.
       - ./notebook.pdf:/work/notebook.pdf
 
-      # Named volume (declared below) absorbs all the intermediate artifacts
-      # so they don't pollute the host. Mounted at /var/build so it does
-      # not shadow /work (which holds the bind-mounted inputs above).
+      # Host directory for the selected LaTeX log files.
+      - ./logs:/work/logs:rw
+      # Keep all build output inside Docker; only selected files are copied
+      # into logs/ after a successful build.
       - codebook-build:/var/build
 
     # generate_pdf.py reads the OUTPUT_DIRECTORY env var and passes
     # -output-directory=$OUTPUT_DIRECTORY to pdflatex. That sends
-    # .aux/.log/.out/.toc and the final .pdf into /var/build (the named
-    # volume), while pdflatex still reads notebook.tex from /work, so
+    # build artifacts and the final .pdf into /var/build, while pdflatex still
+    # reads notebook.tex from /work, so
     # relative paths like \input{math/bhai} and \inputminted{...}{code/...}
     # resolve naturally.
     #
@@ -49,10 +46,13 @@ services:
       - -c
       - |
         set -e
-        mkdir -p /var/build
+        mkdir -p /var/build /work/logs
+        find /work/logs -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
         export OUTPUT_DIRECTORY=/var/build
         python3 /work/generate_pdf.py
         cp /var/build/notebook.pdf /work/notebook.pdf
+        cp /var/build/notebook.aux /var/build/notebook.log \
+          /var/build/notebook.out /var/build/notebook.toc /work/logs/
 
 volumes:
   codebook-build:
